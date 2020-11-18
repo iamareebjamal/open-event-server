@@ -108,7 +108,33 @@ def validate_date(event, data):
             )
 
 
+from diskcache import Cache
+
+# cache = TTLCache(maxsize=12345, ttl=12345678)
+cache = Cache('/tmp')
+
+
 class EventList(ResourceList):
+
+    # def dispatch_request(self, *args, **kwargs):
+    #     key = 'cache:response:v1:events'
+    #     response = redis_store.get(key)
+    #     if not response:
+    #         response = super().dispatch_request(*args, **kwargs)
+    #         redis_store.set(key, pickle.dumps(response))
+    #     else:
+    #         response = pickle.loads(response)
+    #     return response
+
+    # def dispatch_request(self, *args, **kwargs):
+    #     key = 'cache:response:v1:events'
+    #     response = cache.get(key)
+    #     if not response:
+    #         print('miss', cache.directory)
+    #         response = super().dispatch_request(*args, **kwargs)
+    #         cache[key] = response
+    #     return response
+
     def before_get(self, args, kwargs):
         """
         method for assigning schema based on admin access
@@ -858,7 +884,13 @@ class UpcomingEventList(EventList):
                         Event.event_type_id != None,
                         Event.event_topic_id != None,
                         Event.event_sub_topic_id != None,
-                        Event.tickets.any(and_(Ticket.deleted_at == None, Ticket.is_hidden == False, Ticket.sales_ends_at > current_time)),
+                        Event.tickets.any(
+                            and_(
+                                Ticket.deleted_at == None,
+                                Ticket.is_hidden == False,
+                                Ticket.sales_ends_at > current_time,
+                            )
+                        ),
                     ),
                 ),
             )
